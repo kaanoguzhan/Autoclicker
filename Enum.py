@@ -4,5 +4,6 @@ class Enumeration(object):
         for number, name in enumerate(names.split()):
             setattr(self, name, number)
 
+
 fs = Enumeration("Big Small")
 gtd = Enumeration("Between Before")

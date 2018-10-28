@@ -20,8 +20,8 @@ class Diffmemory:
             if diff < 0:
                 self.results[place * self.step] = self.results.get(place * self.step, 0) + 1
 
-    def getValues(self):
-        return sorted(self.results.iteritems())
+    def sorted_values(self):
+        return sorted(self.results.items())
 
 
 class ClickMemory:
@@ -40,14 +40,14 @@ class ClickMemory:
         self.maxDelayBefore = -float("inf")
         self.maxDelayBetween = -float("inf")
 
-    def addLeftClick(self, delayBefore, delayBetween):
+    def add_leftclick(self, delay_before, delay_between):
         # print "Randoms: ", delayBefore, " - ", delayBetween
         # Average
         self.avgDelayBefore *= self.totalClick
         self.avgDelayBetween *= self.totalClick
 
-        self.avgDelayBefore += delayBefore
-        self.avgDelayBetween += delayBetween
+        self.avgDelayBefore += delay_before
+        self.avgDelayBetween += delay_between
 
         self.totalClick += 1
 
@@ -55,18 +55,18 @@ class ClickMemory:
         self.avgDelayBetween /= self.totalClick
 
         # Min
-        if delayBefore < self.minDelayBefore:
-            self.minDelayBefore = delayBefore
-        if delayBetween < self.minDelayBetween:
-            self.minDelayBetween = delayBetween
+        if delay_before < self.minDelayBefore:
+            self.minDelayBefore = delay_before
+        if delay_between < self.minDelayBetween:
+            self.minDelayBetween = delay_between
 
         # Max
-        if delayBefore > self.maxDelayBefore:
-            self.maxDelayBefore = delayBefore
-        if delayBetween > self.maxDelayBetween:
-            self.maxDelayBetween = delayBetween
+        if delay_before > self.maxDelayBefore:
+            self.maxDelayBefore = delay_before
+        if delay_between > self.maxDelayBetween:
+            self.maxDelayBetween = delay_between
 
-    def clickOverview(self):
+    def overview_text(self):
         text = ""
         text += "Total Clicks: " + str(self.totalClick) + "\n" + "\n"
         text += "Before" + "\n"

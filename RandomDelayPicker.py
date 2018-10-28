@@ -1,7 +1,7 @@
 import random
 
 
-def rand_delayBefore(lastRand=0):
+def rand_delay_before(last_rand=0):
     rndmean = 0.71
     rnsigma = 0.123
     randmin = 0.3252412
@@ -18,27 +18,27 @@ def rand_delayBefore(lastRand=0):
         else:
             rand -= random.uniform(mindiffbefore, maxdiffbefore)
     # Ensuring withinh the bounds
-    notInsideBounds = randmin > rand or rand > randmax
+    not_inside_bounds = randmin > rand or rand > randmax
     # Ensuring not less than minimum diffbeforeerence
-    notMindiffbefore = abs(rand - lastRand) < mindiffbefore
+    not_mindiffbefore = abs(rand - last_rand) < mindiffbefore
     # Ensuring not more than maximum diffbeforeerence
-    notMaxdiffbefore = abs(rand - lastRand) > maxdiffbefore
+    not_maxdiffbefore = abs(rand - last_rand) > maxdiffbefore
 
-    while notInsideBounds or notMindiffbefore or notMaxdiffbefore:
+    while not_inside_bounds or not_mindiffbefore or not_maxdiffbefore:
         rand = randfnc(rndmean, rnsigma)
         if random.randint(1, 10) == 1:
             if random.randint(1, 2) == 1:
                 rand += random.uniform(mindiffbefore, maxdiffbefore)
             else:
                 rand -= random.uniform(mindiffbefore, maxdiffbefore)
-        notInsideBounds = randmin > rand or rand > randmax
-        notMindiffbefore = abs(rand - lastRand) < mindiffbefore
-        notMaxdiffbefore = abs(rand - lastRand) > maxdiffbefore
+        not_inside_bounds = randmin > rand or rand > randmax
+        not_mindiffbefore = abs(rand - last_rand) < mindiffbefore
+        not_maxdiffbefore = abs(rand - last_rand) > maxdiffbefore
 
     return rand
 
 
-def rand_delayBetween(lastRand=0):
+def rand_delay_between(last_rand=0):
     rndmean = 0.118
     rnsigma = 0.02
     randmin = 0.0728231
@@ -55,21 +55,21 @@ def rand_delayBetween(lastRand=0):
         elif rand > rndmean and random.randint(1, 3) == 1:
             rand -= random.uniform(mindiffbefore, maxdiffbefore)
     # Ensuring withinh the bounds
-    notInsideBounds = randmin > rand or rand > randmax
+    not_inside_bounds = randmin > rand or rand > randmax
     # Ensuring not less than minimum diffbeforeerence
-    notMindiffbefore = abs(rand - lastRand) < mindiffbefore
+    not_mindiffbefore = abs(rand - last_rand) < mindiffbefore
     # Ensuring not more than maximum diffbeforeerence
-    notMaxdiffbefore = abs(rand - lastRand) > maxdiffbefore
+    not_maxdiffbefore = abs(rand - last_rand) > maxdiffbefore
 
-    while notInsideBounds or notMindiffbefore or notMaxdiffbefore:
+    while not_inside_bounds or not_mindiffbefore or not_maxdiffbefore:
         rand = randfnc(rndmean, rnsigma)
         if random.randint(1, 5) == 1:
             if rand < rndmean:
                 rand += random.uniform(mindiffbefore, maxdiffbefore)
             elif rand > rndmean and random.randint(1, 3) == 1:
                 rand -= random.uniform(mindiffbefore, maxdiffbefore)
-        notInsideBounds = randmin > rand or rand > randmax
-        notMindiffbefore = abs(rand - lastRand) < mindiffbefore
-        notMaxdiffbefore = abs(rand - lastRand) > maxdiffbefore
+        not_inside_bounds = randmin > rand or rand > randmax
+        not_mindiffbefore = abs(rand - last_rand) < mindiffbefore
+        not_maxdiffbefore = abs(rand - last_rand) > maxdiffbefore
 
     return rand

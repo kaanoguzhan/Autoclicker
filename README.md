@@ -1,8 +1,9 @@
-A very simple Autoclicker with random delays
+A very simple Autoclicker with random delays on Pyton37
 
 If you just want to use the program:
 
-1)run "Compile & Run.bat" 
-That's it.
+0) !! You must have Python installed !!
 
-Now you can use either "AutoClicker with Log" or "AutoClicker without Log"
+1) run "Run.bat"
+
+That's it.

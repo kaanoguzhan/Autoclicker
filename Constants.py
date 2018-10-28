@@ -1,0 +1,2 @@
+PROGRAM_TITLE = "Auto clicker"
+DELAY_BEFORE_START = 3
