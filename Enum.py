@@ -7,3 +7,6 @@ class Enumeration(object):
 
 fs = Enumeration("Big Small")
 gtd = Enumeration("Between Before")
+
+mouse_click = Enumeration("Mouse Click")
+keyboard_click = Enumeration("Keyboard Click")

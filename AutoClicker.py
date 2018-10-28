@@ -1,17 +1,21 @@
 import ctypes
+import threading
 from time import sleep
-from tkinter import Tk, Button, Label, Canvas
-import datetime
-from Memory import *
-from RandomDelayPicker import *
+from tkinter import *
+
+from Clicker.KeyClicker import key_press
+from Clicker.MouseClicker import LeftClicker
 from Constants import *
 from Enum import *
-import threading
+from Memory import *
+from RandomDelayPicker import *
 
 SetCursorPos = ctypes.windll.user32.SetCursorPos
 mouse_event = ctypes.windll.user32.mouse_event
+keyboard_event = ctypes.windll.user32.keybd_event
 testing = False
 clicking = False
+mode = mouse_click
 
 
 class Timer:
@@ -20,6 +24,7 @@ class Timer:
     func = None
     aborted = False
     running = False
+    frame = None
 
     def __init__(self):
         self.aborted = False
@@ -36,72 +41,36 @@ class Timer:
             sleep(1)
             if self.aborted:
                 self.label.config(text="! Aborted !")
+                frame.btn_clicker_start.config(state="active", text="Start")
                 self.running = False
                 return True
         self.running = False
         self.func()
 
-    def run(self):
+    def run(self, framee):
+        self.frame = framee
         if self.running:
             return
+        frame.btn_clicker_start.config(text="Cancel")
         t = threading.Thread(target=self.time_worker)
         t.start()
         self.running = True
 
     def abort(self):
+        frame.btn_clicker_start.config(state="disabled", text="Canceling")
         self.aborted = True
-
-
-class LeftClicker:
-    isLeftDown = False
-    isLeftUp = False
-    inUse = False
-
-    def __init__(self):
-        self.isLeftDown = False
-        self.isLeftUp = True
-
-    def left_click(self, x=-1, y=-1, clicks=1, delay_before=0, delay_between=0):
-        global downtime
-        if self.inUse:
-            return True
-
-        if testing:
-            return False
-
-        self.inUse = True
-        if x != 1 and y != -1:
-            SetCursorPos(x, y)
-
-        for i in range(clicks):
-            if self.isLeftUp:
-                sleep(delay_before)
-                downtime = datetime.datetime.now().time()
-
-                mouse_event(2, 0, 0, 0, 0)
-                self.isLeftUp = False
-                self.isLeftDown = True
-
-            if self.isLeftDown:
-                sleep(delay_between)
-
-                print("Click:", clickmemory.totalClick + 1,
-                      "\t", downtime, " - ", datetime.datetime.now().time(),
-                      "\t waited/Lasted", delay_before, " - ", delay_between)
-                mouse_event(4, 0, 0, 0, 0)
-                self.isLeftUp = True
-                self.isLeftDown = False
-        self.inUse = False
 
 
 class Clicker:
     running = False
-    LClicker = LeftClicker()
 
-    def __init__(self):
-        self.LClicker = LeftClicker()
+    def __init__(self, clickmem, txt_key_hex):
+        self.txt_key_hex = txt_key_hex
+        self.clickmemory = clickmem
+        self.LClicker = LeftClicker(clickmem)
 
     def worker(self):
+        global mode
         delay_before = 0
         delay_between = 0
         while self.running:
@@ -109,21 +78,31 @@ class Clicker:
             delay_between = rand_delay_between(delay_between)
             if clickmemory.totalClick > 100000:
                 break
-            if self.LClicker.left_click(delay_before=delay_before, delay_between=delay_between):
-                break
+            if mode is mouse_click:
+                if self.LClicker.left_click(delay_before=delay_before,
+                                            delay_between=delay_between,
+                                            testing=testing):
+                    break
+            if mode is keyboard_click:
+                if key_press(int(self.txt_key_hex.get("1.0", 'end-1c'), 16),
+                             self.clickmemory,
+                             delay_before=delay_before,
+                             delay_between=delay_between,
+                             testing=testing):
+                    break
             diff_before.add(delay_before)
             diff_between.add(delay_between)
             clickmemory.add_leftclick(delay_before, delay_between)
             frame.label.config(text=clickmemory.overview_text())
             frame.graph_update()
-        print("Paused")
+        print("Stopped")
 
     def infitineclick(self):
         self.running = True
-        print("Started")
 
         t = threading.Thread(target=self.worker)
         t.start()
+        print("Started")
 
     def stop(self):
         self.running = False
@@ -131,18 +110,17 @@ class Clicker:
 
 class Frame:
     root = Tk()
-    clicker = Clicker()
+    clicker = None
     datatype = None
     framesize = fs.Small
     graphDataType = gtd.Between
-    testing = False
 
     data = []
 
     # Bar graph and its variables
     c_height = 350
     c = Canvas(root, width=650, height=c_height, bg='white')
-    c.grid(row=0, column=2, rowspan=4)
+    c.grid(row=0, column=5, rowspan=5)
     maxy = 999999
     y_stretch = 100     # The highest y = max_data_value * y_stretch
     y_gap = 0           # The gap between lower canvas edge and x axis
@@ -154,23 +132,26 @@ class Frame:
         self.datatype = diff_between
         self.root.protocol('WM_DELETE_WINDOW', self.program_exit)
         self.root.geometry("355x340")
-        self.root.resizable(width=False, height=False)
+        self.root.resizable(width=True, height=True)
 
-        self.btn_startClicker = Button(self.root,
-                                       text='Start',
-                                       height=3,
-                                       width=20,
-                                       font=48,
-                                       command=self.clicker_start)
-        self.btn_startClicker.grid(row=0, column=0, rowspan=2)
+        self.btn_clicker_start = Button(self.root,
+                                        text='Start',
+                                        font=("Sans", 40),
+                                        command=self.clicker_start)
+        self.btn_clicker_start.grid(row=0,
+                                    column=0,
+                                    rowspan=2,
+                                    columnspan=3,
+                                    sticky="nesw",)
 
         self.btn_stop = Button(self.root,
                                text='Stop',
-                               height=3,
-                               width=20,
-                               font=48,
+                               font=("Sans", 15),
                                command=self.clicker_stop)
-        self.btn_stop.grid(row=2, column=0)
+        self.btn_stop.grid(row=2,
+                           column=0,
+                           columnspan=3,
+                           sticky="nesw")
 
         self.label = Label(self.root,
                            height=9,
@@ -178,42 +159,83 @@ class Frame:
                            background='black',
                            foreground='yellow',
                            text=clickmemory.overview_text())
-        self.label.grid(row=3,
+        self.label.grid(row=4,
                         column=0,
-                        columnspan=2)
+                        columnspan=5,
+                        sticky="nesw")
 
         self.btn_graph = Button(self.root,
                                 text='Show Graph',
-                                width=12, font=48,
+                                font=48,
                                 command=self.graph_showhide)
         self.btn_graph.grid(row=0,
-                            column=1)
+                            column=3,
+                            columnspan=2,
+                            sticky="nesw")
 
         self.btn_graphdatatype = Button(self.root,
                                         text='Between Time',
-                                        width=12,
-                                        font=48,
+                                        font=("Sans", 12),
+                                        width=13,
                                         command=self.graph_changedata)
         self.btn_graphdatatype.grid(row=1,
-                                    column=1)
+                                    column=3,
+                                    columnspan=2,
+                                    sticky="nesw")
 
         self.btn_test = Button(self.root,
-                               text='Normal',
-                               width=12,
-                               font=48,
+                               text='Testing: False',
+                               font=("Sans", 12),
                                command=self.test)
         self.btn_test.grid(row=2,
-                           column=1)
+                           column=3,
+                           columnspan=2,
+                           sticky="nesw")
+
+        self.txt_key_hex = Text(self.root,
+                                width=5,
+                                height=1)
+        self.txt_key_hex.grid(row=3,
+                              column=0)
+
+        self.txt_key_hex_info = Text(self.root,
+                                     width=7,
+                                     font=1,
+                                     height=1)
+        self.txt_key_hex_info.grid(row=3,
+                                   column=1)
+
+        self.btn_click_mode = Button(self.root,
+                                     text="Mode: Mouse Click",
+                                     font=("Sans", 13),
+                                     width=10,
+                                     background="#29b6f6",
+                                     command=self.mode_change)
+        self.btn_click_mode.grid(row=3,
+                                 column=2,
+                                 columnspan=3,
+                                 sticky="nesw")
+
+        self.clicker = Clicker(clickmemory, self.txt_key_hex)
+        self.txt_key_hex_info.insert(INSERT, "http://www.flint.jp/misc/?q=dik&lang=en")
+        self.txt_key_hex_info.config(state="disabled")
 
     def clicker_start(self):
+        if timer.running:
+            timer.abort()
+        if self.clicker.running:
+            self.clicker.stop()
+            return
+
+        self.txt_key_hex.config(state="disabled")
         timer.set(self.label, DELAY_BEFORE_START, self.clicker.infitineclick)
-        timer.run()
-        self.btn_startClicker.config(state="disabled")
+        timer.run(self)
 
     def clicker_stop(self):
         timer.abort()
         self.clicker.stop()
-        self.btn_startClicker.config(state="active")
+        self.btn_clicker_start.config(state="active", text="Start")
+        self.txt_key_hex.config(state="normal")
 
     def graph_update(self):
         if self.framesize == fs.Big:
@@ -259,11 +281,20 @@ class Frame:
     def test(self):
         global testing
         if testing:
-            self.btn_test["text"] = "Normal"
+            self.btn_test["text"] = "Testing: False"
             testing = False
         else:
-            self.btn_test["text"] = "Testing"
+            self.btn_test["text"] = "Testing: True"
             testing = True
+
+    def mode_change(self):
+        global mode
+        if mode is mouse_click:
+            self.btn_click_mode["text"] = "Mode: Keyboard"
+            mode = keyboard_click
+        else:
+            self.btn_click_mode["text"] = "Mode: Mouse Click"
+            mode = mouse_click
 
     def program_exit(self):
         self.clicker.stop()
